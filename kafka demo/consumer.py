@@ -48,7 +48,7 @@ class CaphcaConsumer:
 
 def persist_employee(msg):
     e = Employee(**(json.loads(msg.value())))
-    employee = (e.first_name, e.last_name, e.dob, e.city)
+    employee = (e.emp_id, e.first_name, e.last_name, e.dob, e.city)
     print(employee)
     try:
         conn = psycopg2.connect(
@@ -62,11 +62,11 @@ def persist_employee(msg):
         # create a cursor
         cur = conn.cursor()
         if e.action=='INSERT':
-            result = cur.execute(
-                "INSERT INTO employees_b (first_name,last_name,dob,city) VALUES (%s,%s,%s,%s) on conflict do nothing", employee)
+            result = cur.execute( # (emp_id, first_name,last_name,dob,city)
+                "INSERT INTO employees_b VALUES (%s,%s,%s,%s,%s) on conflict do nothing", employee)
         elif e.action=='UPDATE':
             result = cur.execute(
-                "UPDATE employees_b SET first_name = %s, last_name = %s, dob = %s, city = %s WHERE emp_id = %s", employee)
+                "UPDATE employees_b SET first_name = %s, last_name = %s, dob = %s, city = %s WHERE emp_id = e.emp_id", employee[:4])
         elif e.action=='DELETE':
             result = cur.execute(
                 "DELETE FROM employees_b WHERE emp_id = %s", (e.emp_id,))
